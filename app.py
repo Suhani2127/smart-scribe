@@ -99,4 +99,26 @@ if uploaded_file:
                                 st.markdown(f"- {card.strip()}")
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
+                    def generate_quiz_from_flashcards(flashcards):
+    quiz = []
+    for card in flashcards:
+        question, answer = card.split(":")  # Assuming flashcard format "question:answer"
+        quiz.append({
+            "question": question.strip(),
+            "choices": [answer.strip(), "Wrong answer 1", "Wrong answer 2", "Wrong answer 3"],
+            "correct_answer": answer.strip()
+        })
+    return quiz
+
+# Display quiz in the app:
+quiz = generate_quiz_from_flashcards(flashcards)
+for question in quiz:
+    st.write(f"**Q: {question['question']}**")
+    choices = question["choices"]
+    user_answer = st.radio(f"Select an answer", choices)
+    if user_answer == question["correct_answer"]:
+        st.success("✅ Correct!")
+    else:
+        st.error("❌ Incorrect")
+
 
