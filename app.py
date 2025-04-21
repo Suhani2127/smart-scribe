@@ -1,7 +1,7 @@
 import streamlit as st
 import PyPDF2
 import requests
-import re
+import textwrap
 
 # 🔐 Hugging Face API setup
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
@@ -9,7 +9,7 @@ headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
 
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
-st.subheader("Upload your notes and get instant AI-generated summaries & quizzes (free & open-source powered)")
+st.subheader("Upload your notes and get instant AI-generated summaries and quizzes")
 
 uploaded_file = st.file_uploader("📤 Upload a PDF or TXT file", type=["pdf", "txt"])
 
@@ -21,33 +21,14 @@ def extract_text_from_pdf(file):
         text += page.extract_text()
     return text
 
-# Split the text into smaller chunks to avoid token limit issues
-def split_text(text, max_chunk_size=1024):
-    # Split text into chunks of size max_chunk_size (taking into account token limits)
-    sentences = re.split(r'(?<=\.)\s', text)
-    chunks = []
-    current_chunk = ""
-    
-    for sentence in sentences:
-        if len(current_chunk) + len(sentence) < max_chunk_size:
-            current_chunk += " " + sentence
-        else:
-            chunks.append(current_chunk.strip())
-            current_chunk = sentence
-            
-    if current_chunk.strip():
-        chunks.append(current_chunk.strip())
-        
-    return chunks
-
-# 🤖 Summarization using Hugging Face API
-def summarize_with_huggingface(text_chunk):
-    prompt = f"Summarize the following notes:\n\n{text_chunk}"
+# 🧠 Summarization and Quiz Generation using Hugging Face API
+def summarize_with_huggingface(text):
+    prompt = f"Summarize the following notes:\n\n{text}"
     payload = {
         "inputs": prompt,
         "parameters": {
             "temperature": 0.5,
-            "max_new_tokens": 150
+            "max_new_tokens": 150  # reduced token size for faster processing
         }
     }
 
@@ -58,14 +39,14 @@ def summarize_with_huggingface(text_chunk):
     else:
         raise Exception(f"Error: {response.status_code} - {response.text}")
 
-# 🤖 Generate Quizzes using Hugging Face API
-def generate_quiz_with_huggingface(text_chunk):
-    prompt = f"Generate a multiple-choice quiz based on the following notes:\n\n{text_chunk}"
+# 📝 Quiz Generation using Hugging Face API
+def generate_quiz(text):
+    prompt = f"Create a quiz with multiple-choice questions based on the following notes:\n\n{text}"
     payload = {
         "inputs": prompt,
         "parameters": {
             "temperature": 0.5,
-            "max_new_tokens": 150
+            "max_new_tokens": 150  # reduced token size for faster processing
         }
     }
 
@@ -96,47 +77,34 @@ if uploaded_file:
         with st.expander("📄 Show Extracted Text"):
             st.write(extracted_text)
 
+        # ✨ Split text into smaller chunks for faster processing
+        chunk_size = 500  # limit to 500 tokens per chunk
+        text_chunks = textwrap.wrap(extracted_text, chunk_size)
+
         # ✨ Summarize Button
         if st.button("✨ Summarize Notes"):
             with st.spinner("Summarizing..."):
-                try:
-                    # Split text into manageable chunks for summary
-                    chunks = split_text(extracted_text)
-
-                    summaries = []
-                    for chunk in chunks:
-                        summary_chunk = summarize_with_huggingface(chunk)
-                        summaries.append(summary_chunk)
-
-                    st.subheader("🧠 Summary")
-                    # Display summary as bullet points
-                    for summary in summaries:
-                        st.markdown(f"- {summary.strip()}")
-
-                except Exception as e:
-                    st.error(f"Something went wrong: {e}")
+                summaries = []
+                for chunk in text_chunks:
+                    try:
+                        summary = summarize_with_huggingface(chunk)
+                        summaries.append(summary)
+                    except Exception as e:
+                        st.error(f"Error while summarizing: {e}")
+                
+                st.subheader("🧠 Summary")
+                st.write("\n".join(summaries))
 
         # ✨ Quiz Button
-        if st.button("✨ Generate Quiz"):
+        if st.button("📝 Generate Quiz"):
             with st.spinner("Generating quiz..."):
-                try:
-                    # Split text into manageable chunks for quiz
-                    chunks = split_text(extracted_text)
+                quizzes = []
+                for chunk in text_chunks:
+                    try:
+                        quiz = generate_quiz(chunk)
+                        quizzes.append(quiz)
+                    except Exception as e:
+                        st.error(f"Error while generating quiz: {e}")
 
-                    quizzes = []
-                    for chunk in chunks:
-                        quiz_chunk = generate_quiz_with_huggingface(chunk)
-                        quizzes.append(quiz_chunk)
-
-                    st.subheader("🧠 Quiz")
-                    # Display quizzes as bullet points
-                    for quiz in quizzes:
-                        quiz_list = quiz.split("\n")
-                        for question in quiz_list:
-                            if question.strip():
-                                st.markdown(f"- {question.strip()}")
-
-                except Exception as e:
-                    st.error(f"Something went wrong: {e}")
-
-        
+                st.subheader("🎓 Quiz")
+                st.write("\n".join(quizzes))
