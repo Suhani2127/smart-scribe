@@ -138,33 +138,37 @@ if uploaded_file:
         # ✨ Flashcards Generation
         if st.button("✨ Generate Flashcards"):
             with st.spinner("Generating flashcards..."):
-                try:
-                    chunks = split_text(extracted_text)
-                    flashcards = []
-                    for chunk in chunks:
-                        flashcards_chunk = generate_flashcards_with_huggingface(chunk)
-                        flashcards.append(flashcards_chunk)
+              try:
+    # Split text into manageable chunks
+    chunks = split_text(extracted_text)
 
-                    st.subheader("🧠 Flashcards")
-                    import random
+    flashcards = []
+    for chunk in chunks:
+        flashcards_chunk = generate_flashcards_with_huggingface(chunk)
+        flashcards.append(flashcards_chunk)
 
-card_colors = ["#e0f7fa", "#fce4ec", "#f3e5f5", "#fff3e0", "#e8f5e9"]
+    st.subheader("🧠 Flashcards")
 
-for flashcard in flashcards:
-    flashcard_list = flashcard.split("\n")
-    for card in flashcard_list:
-        if card.strip():
-            st.markdown(
-                f"""
-                <div style="background-color:{random.choice(card_colors)}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
-                    <strong>🧠 Flashcard:</strong><br>{card.strip()}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+    import random
+    card_colors = ["#e0f7fa", "#fce4ec", "#f3e5f5", "#fff3e0", "#e8f5e9"]
 
-                except Exception as e:
-                    st.error(f"Something went wrong: {e}")
+    # Display flashcards in visual card style
+    for flashcard in flashcards:
+        flashcard_list = flashcard.split("\n")
+        for card in flashcard_list:
+            if card.strip():
+                st.markdown(
+                    f"""
+                    <div style="background-color:{random.choice(card_colors)}; padding: 15px; 
+                    border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                        <strong>🧠 Flashcard:</strong><br>{card.strip()}
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+except Exception as e:
+    st.error(f"Something went wrong: {e}")
+
 
         # 🧠 Text Analytics and Insights
         st.subheader("📊 Text Analytics and Insights")
