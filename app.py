@@ -147,11 +147,19 @@ if uploaded_file:
 
                     card_colors = ["#e0f7fa", "#fce4ec", "#f3e5f5", "#fff3e0", "#e8f5e9"]
 
-                    # Swipe-like feature using selectbox to navigate through flashcards
-                    flashcard_idx = st.selectbox("Swipe to navigate through the flashcards:", range(len(flashcards)))
+                    # Initialize the index for the flashcard navigation
+                    if "flashcard_idx" not in st.session_state:
+                        st.session_state.flashcard_idx = 0
+
+                    # Function to move to the next or previous flashcard
+                    def update_flashcard(direction):
+                        if direction == "next" and st.session_state.flashcard_idx < len(flashcards) - 1:
+                            st.session_state.flashcard_idx += 1
+                        elif direction == "prev" and st.session_state.flashcard_idx > 0:
+                            st.session_state.flashcard_idx -= 1
 
                     # Display the selected flashcard
-                    flashcard_list = flashcards[flashcard_idx].split("\n")
+                    flashcard_list = flashcards[st.session_state.flashcard_idx].split("\n")
                     for card in flashcard_list:
                         if card.strip():
                             st.markdown(
@@ -163,6 +171,18 @@ if uploaded_file:
                                 """,
                                 unsafe_allow_html=True,
                             )
+
+                    # Navigation buttons
+                    col1, col2, col3 = st.columns([1, 6, 1])
+                    with col1:
+                        if st.button("⬅️ Previous", key="prev"):
+                            update_flashcard("prev")
+                    with col2:
+                        st.write(f"**{st.session_state.flashcard_idx + 1}/{len(flashcards)}**")
+                    with col3:
+                        if st.button("➡️ Next", key="next"):
+                            update_flashcard("next")
+
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
 
