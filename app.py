@@ -112,7 +112,6 @@ def generate_quiz_from_flashcards(flashcards):
     return quiz
 
 # Display quiz in the app:
-flashcards = ["What is the capital of France?: Paris", "Who is the president of the USA?: Joe Biden"]  # Example flashcards
 quiz = generate_quiz_from_flashcards(flashcards)
 
 # Loop through the generated quiz and display questions and options
