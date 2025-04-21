@@ -3,14 +3,13 @@ import PyPDF2
 import requests
 
 # 🔐 Hugging Face API setup
-HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"  # Use another model URL if needed
-
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
 headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
 
-# Streamlit page config
+# 🎨 Streamlit UI setup
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
-st.subheader("Upload your notes and get instant AI-generated summaries (free & open-source powered)")
+st.subheader("Upload your notes and get instant AI-generated bullet-point summaries (free & open-source powered)")
 
 uploaded_file = st.file_uploader("📤 Upload a PDF or TXT file", type=["pdf", "txt"])
 
@@ -24,14 +23,13 @@ def extract_text_from_pdf(file):
 
 # 🤖 Summarization using Hugging Face API
 def summarize_with_huggingface(text):
-    MAX_TOKENS = 1024  # Token limit for the model
+    MAX_TOKENS = 1024
     input_tokens = text.split()
-    
-    # Truncate text if token count exceeds MAX_TOKENS
+
     if len(input_tokens) > MAX_TOKENS:
         text = " ".join(input_tokens[:MAX_TOKENS])
     
-    prompt = f"Summarize the following notes:\n\n{text}"
+    prompt = f"Summarize the following notes as bullet points:\n\n{text}"
     payload = {
         "inputs": prompt,
         "parameters": {
@@ -44,14 +42,12 @@ def summarize_with_huggingface(text):
 
     if response.status_code == 200:
         summary_text = response.json()[0]["generated_text"]
-        
-        # Split the summary into points (by newlines)
         summary_points = summary_text.split("\n")
         return summary_points
     else:
         raise Exception(f"Error: {response.status_code} - {response.text}")
 
-# 📄 Extract Text from Uploaded File
+# 📄 File Handling
 extracted_text = ""
 
 if uploaded_file:
@@ -76,9 +72,10 @@ if uploaded_file:
             with st.spinner("Summarizing with Hugging Face..."):
                 try:
                     summary_points = summarize_with_huggingface(extracted_text)
-                    st.subheader("🧠 Summary (Point-wise)")
-                    for i, point in enumerate(summary_points):
-                        if point.strip():  # Display non-empty points
-                            st.markdown(f"**Point {i + 1}:** {point.strip()}")
+                    st.subheader("🧠 Summary (Bullet Points)")
+                    for point in summary_points:
+                        if point.strip():
+                            st.markdown(f"- {point.strip()}")
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
+
