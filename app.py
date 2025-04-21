@@ -71,24 +71,27 @@ if uploaded_file:
 
                     # Flashcards and Quiz Generation
                     flashcards = generate_flashcards(summary)
-                    quiz = generate_quiz_from_flashcards(flashcards)
+                    if not flashcards:  # Check if flashcards are empty
+                        st.warning("⚠️ No flashcards generated. The summary might be too short or unclear.")
+                    else:
+                        quiz = generate_quiz_from_flashcards(flashcards)
 
-                    # Display Flashcards
-                    st.subheader("💡 Key Points & Flashcards")
-                    for card in flashcards:
-                        st.write(f"**Q: {card['question']}**")
-                        st.write(f"**A: {card['answer']}**")
+                        # Display Flashcards
+                        st.subheader("💡 Key Points & Flashcards")
+                        for card in flashcards:
+                            st.write(f"**Q: {card['question']}**")
+                            st.write(f"**A: {card['answer']}**")
 
-                    # Display Quiz
-                    st.subheader("📝 Quiz")
-                    for question in quiz:
-                        st.write(f"**Q: {question['question']}**")
-                        choices = question["choices"]
-                        user_answer = st.radio(f"Select an answer", choices, key=question['question'])
-                        if user_answer == question["correct_answer"]:
-                            st.success("✅ Correct!")
-                        else:
-                            st.error("❌ Incorrect")
+                        # Display Quiz
+                        st.subheader("📝 Quiz")
+                        for question in quiz:
+                            st.write(f"**Q: {question['question']}**")
+                            choices = question["choices"]
+                            user_answer = st.radio(f"Select an answer", choices, key=question['question'])
+                            if user_answer == question["correct_answer"]:
+                                st.success("✅ Correct!")
+                            else:
+                                st.error("❌ Incorrect")
 
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
@@ -98,6 +101,9 @@ if uploaded_file:
 def generate_flashcards(summary):
     # This is where you can parse out key points from the summary
     flashcards = []
+
+    if not summary:
+        return flashcards  # Return empty list if no summary is provided
 
     # Example structure for the flashcards:
     flashcards.append({"question": "What is the main idea of the text?", "answer": summary[:100]})  # First 100 characters as an example
@@ -110,6 +116,8 @@ def generate_flashcards(summary):
 # Function to generate quiz from flashcards
 def generate_quiz_from_flashcards(flashcards):
     quiz = []
+    if not flashcards:
+        return quiz  # Return empty list if no flashcards are available
     for card in flashcards:
         question, answer = card["question"], card["answer"]
         quiz.append({
