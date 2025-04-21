@@ -1,11 +1,13 @@
 import streamlit as st
 import PyPDF2
+import openai
 
-# --- Title and Instructions ---
-st.title("📚 SmartScribe AI - Step 1")
-st.subheader("Upload your class notes (PDF or TXT) to extract raw text")
+# Load API key
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# --- Upload the file ---
+st.title("📚 SmartScribe AI - Step 2")
+st.subheader("Upload your notes (PDF or TXT) and get instant summaries!")
+
 uploaded_file = st.file_uploader("Upload a PDF or TXT file", type=["pdf", "txt"])
 
 def extract_text_from_pdf(file):
@@ -15,7 +17,8 @@ def extract_text_from_pdf(file):
         text += page.extract_text()
     return text
 
-# --- Display the extracted text ---
+extracted_text = ""
+
 if uploaded_file:
     file_type = uploaded_file.name.split(".")[-1]
     
@@ -27,6 +30,24 @@ if uploaded_file:
         st.error("Unsupported file type.")
 
     st.success("✅ Text extracted successfully!")
-    
     with st.expander("🔍 Show Extracted Text"):
         st.write(extracted_text)
+
+    if extracted_text:
+        if st.button("✨ Summarize Notes"):
+            with st.spinner("Summarizing with GPT..."):
+                try:
+                    response = openai.ChatCompletion.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant that summarizes class notes."},
+                            {"role": "user", "content": f"Summarize these notes:\n\n{extracted_text}"}
+                        ],
+                        temperature=0.5,
+                        max_tokens=500
+                    )
+                    summary = response["choices"][0]["message"]["content"]
+                    st.subheader("📝 Summary")
+                    st.write(summary)
+                except Exception as e:
+                    st.error(f"Error: {e}")
