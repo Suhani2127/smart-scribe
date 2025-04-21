@@ -6,10 +6,9 @@ import requests
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
 headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
 
-# 🎨 Streamlit UI setup
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
-st.subheader("Upload your notes and get instant AI-generated bullet-point summaries (free & open-source powered)")
+st.subheader("Upload your notes and get instant AI-generated summaries, flashcards, and quizzes! (Free & open-source powered)")
 
 uploaded_file = st.file_uploader("📤 Upload a PDF or TXT file", type=["pdf", "txt"])
 
@@ -23,13 +22,8 @@ def extract_text_from_pdf(file):
 
 # 🤖 Summarization using Hugging Face API
 def summarize_with_huggingface(text):
-    MAX_TOKENS = 1024
-    input_tokens = text.split()
-
-    if len(input_tokens) > MAX_TOKENS:
-        text = " ".join(input_tokens[:MAX_TOKENS])
-    
-    prompt = f"Summarize the following notes as bullet points:\n\n{text}"
+    limited_text = text[:1000]  # Limit input length to stay under token limit
+    prompt = f"Summarize the following notes in bullet points:\n\n{limited_text}"
     payload = {
         "inputs": prompt,
         "parameters": {
@@ -41,13 +35,29 @@ def summarize_with_huggingface(text):
     response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload)
 
     if response.status_code == 200:
-        summary_text = response.json()[0]["generated_text"]
-        summary_points = summary_text.split("\n")
-        return summary_points
+        return response.json()[0]["generated_text"]
     else:
         raise Exception(f"Error: {response.status_code} - {response.text}")
 
-# 📄 File Handling
+# 🧠 Generate Flashcards
+def generate_flashcards(summary_text):
+    prompt = f"From the following notes, generate 5 key flashcards with question-answer pairs:\n\n{summary_text}"
+    payload = {
+        "inputs": prompt,
+        "parameters": {
+            "temperature": 0.5,
+            "max_new_tokens": 300
+        }
+    }
+
+    response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        return response.json()[0]["generated_text"]
+    else:
+        raise Exception(f"Error: {response.status_code} - {response.text}")
+
+# 📄 Extract Text from Uploaded File
 extracted_text = ""
 
 if uploaded_file:
@@ -69,13 +79,34 @@ if uploaded_file:
 
         # ✨ Summarize Button
         if st.button("✨ Summarize Notes"):
-            with st.spinner("Summarizing with Hugging Face..."):
+            with st.spinner("Summarizing with DistilGPT2..."):
                 try:
-                    summary_points = summarize_with_huggingface(extracted_text)
+                    summary = summarize_with_huggingface(extracted_text)
                     st.subheader("🧠 Summary (Bullet Points)")
-                    for point in summary_points:
+                    bullets = summary.strip().split("\n")
+                    for point in bullets:
                         if point.strip():
                             st.markdown(f"- {point.strip()}")
                 except Exception as e:
+                    st.error(f"Something went wrong while summarizing: {e}")
+
+        # 🃏 Flashcard Generator
+        if st.button("🃏 Generate Flashcards"):
+            with st.spinner("Creating flashcards..."):
+                try:
+                    flashcards_text = generate_flashcards(extracted_text)
+                    st.subheader("🃏 Flashcards")
+                    flashcards = flashcards_text.strip().split("\n")
+                    for i, card in enumerate(flashcards):
+                        if card.strip():
+                            with st.expander(f"💡 Flashcard {i+1}"):
+                                if ":" in card:
+                                    q, a = card.split(":", 1)
+                                    st.markdown(f"**Q:** {q.strip()}")
+                                    st.markdown(f"**A:** {a.strip()}")
+                                else:
+                                    st.markdown(card)
+                except Exception as e:
                     st.error(f"Something went wrong: {e}")
+ong: {e}")
 
