@@ -21,7 +21,7 @@ except LookupError:
 
 from nltk.tokenize import word_tokenize, sent_tokenize
 
-# Hugging Face API setup
+# Hugging Face API setup for Chatbot
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
 headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
 
@@ -107,6 +107,20 @@ def analyze_sentiment(text):
     sentiment = "Positive" if polarity > 0 else "Negative" if polarity < 0 else "Neutral"
     return sentiment, polarity
 
+# Chatbot Helpers
+def get_chatbot_response(user_message):
+    payload = {
+        "inputs": user_message,
+        "parameters": {"temperature": 0.7, "max_new_tokens": 150}
+    }
+
+    response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        return response.json()[0]["generated_text"]
+    else:
+        return "Sorry, I couldn't process your request. Please try again."
+
 # Streamlit UI
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
@@ -116,7 +130,7 @@ st.subheader("Upload your notes and get instant AI-generated flashcards and text
 st.sidebar.title("Navigation")
 app_mode = st.sidebar.radio("Choose a section", 
                            ["📄 Extracted Text", "✨ Generate Flashcards", 
-                            "📊 Text Analytics", "📊 Sentiment Analysis"])
+                            "📊 Text Analytics", "📊 Sentiment Analysis", "🤖 Chatbot"])
 
 # File Upload Section
 uploaded_file = st.file_uploader("📤 Upload a PDF or TXT file", type=["pdf", "txt"])
@@ -195,4 +209,35 @@ if uploaded_file:
             sentiment_color = "green" if sentiment == "Positive" else "red" if sentiment == "Negative" else "gray"
             st.markdown(f'<p style="color:{sentiment_color}; font-size: 18px;">{sentiment}</p>', unsafe_allow_html=True)
 
+        # Chatbot Section
+        if app_mode == "🤖 Chatbot":
+            st.subheader("💬 Chat with SmartScribe AI!")
+            
+            # Initialize the chat history (if not already initialized)
+            if "chat_history" not in st.session_state:
+                st.session_state.chat_history = []
+
+            # Display the chat history
+            for message in st.session_state.chat_history:
+                if message["role"] == "user":
+                    st.markdown(f"**You:** {message['content']}")
+                else:
+                    st.markdown(f"**SmartScribe AI:** {message['content']}")
+
+            # User input for chatbot
+            user_message = st.text_input("Your message:", key="user_message")
+
+            # Send user message to chatbot
+            if user_message:
+                # Store user message in chat history
+                st.session_state.chat_history.append({"role": "user", "content": user_message})
+
+                # Get chatbot response
+                chatbot_response = get_chatbot_response(user_message)
+
+                # Store chatbot response in chat history
+                st.session_state.chat_history.append({"role": "bot", "content": chatbot_response})
+
+                # Clear user input field
+                st.experimental_rerun()  # This will re-run the app to display the latest chat
 
