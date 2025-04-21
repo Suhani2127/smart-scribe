@@ -208,34 +208,37 @@ if uploaded_file:
             st.write(extracted_text)
 
         # Flashcards Section
-        if app_mode == "✨ Generate Flashcards":
-            with st.spinner("Generating flashcards..."):
-                try:
-                    chunks = split_text(extracted_text)
-                    flashcards = []
-                    for chunk in chunks:
-                        flashcards_chunk = generate_flashcards_with_huggingface(chunk)
-                        flashcards.append(flashcards_chunk)
+       
+# Flashcards Section
+if app_mode == "✨ Generate Flashcards":
+    with st.spinner("Generating flashcards..."):
+        try:
+            chunks = split_text(extracted_text)
+            flashcards = []
+            for chunk in chunks:
+                flashcards_chunk = generate_flashcards_with_huggingface(chunk)
+                flashcards.append(flashcards_chunk)
 
-                    st.subheader("🧠 Flashcards")
-                    # Display flashcards in a grid layout
-                    cols = st.columns(2)  # Create two columns for a compact layout
-                    for idx, flashcard in enumerate(flashcards):
-                        flashcard_list = flashcard.split("\n")
-                        with cols[idx % 2]:
-                            for card in flashcard_list:
-                                if card.strip():
-                                    st.markdown(
-                                        f"""
-                                        <div style="background-color:#e8f5e9; padding: 10px; 
-                                        border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
-                                            <strong>🧠 Flashcard:</strong><br>{card.strip()}
-                                        </div>
-                                        """,
-                                        unsafe_allow_html=True,
-                                    )
-                except Exception as e:
-                    st.error(f"Something went wrong: {e}")
+            st.subheader("🧠 Flashcards")
+            # Display flashcards in a grid layout
+            cols = st.columns(2)  # Create two columns for a compact layout
+            for idx, flashcard in enumerate(flashcards):
+                flashcard_list = flashcard.split("\n")
+                with cols[idx % 2]:
+                    for card in flashcard_list:
+                        if card.strip():
+                            st.markdown(
+                                f"""
+                                <div style="background-color:#e8f5e9; padding: 10px; 
+                                border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                                    <strong>🧠 Flashcard:</strong><br><span style="color:black;">{card.strip()}</span>
+                                </div>
+                                """,
+                                unsafe_allow_html=True,
+                            )
+        except Exception as e:
+            st.error(f"Something went wrong: {e}")
+
 
         # Text Analytics Section
         if app_mode == "📊 Text Analytics":
