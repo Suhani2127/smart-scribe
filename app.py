@@ -29,11 +29,16 @@ nltk.download("punkt")
 nltk.download("stopwords")
 
 # 🧠 Text Analytics Helpers
+import re
+
 def clean_and_tokenize(text):
-    text = text.lower()
-    tokens = word_tokenize(text)
-    tokens = [t for t in tokens if t not in string.punctuation and t not in nltk.corpus.stopwords.words("english")]
-    return tokens
+    stop_words = {
+        "the", "and", "is", "in", "it", "of", "to", "for", "a", "an", "on", "with", "as", "by", "this",
+        "that", "from", "or", "at", "are", "be", "was", "were", "has", "have", "had", "not"
+    }
+    tokens = re.findall(r'\b[a-zA-Z]{3,}\b', text.lower())  # only words with 3+ letters
+    return [token for token in tokens if token not in stop_words]
+
 
 def get_top_keywords(text, n=10):
     tokens = clean_and_tokenize(text)
