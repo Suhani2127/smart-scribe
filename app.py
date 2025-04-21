@@ -37,16 +37,22 @@ if uploaded_file:
         if st.button("✨ Summarize Notes"):
             with st.spinner("Summarizing with GPT..."):
                 try:
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "You are a helpful assistant that summarizes class notes."},
-                            {"role": "user", "content": f"Summarize these notes:\n\n{extracted_text}"}
-                        ],
-                        temperature=0.5,
-                        max_tokens=500
-                    )
-                    summary = response["choices"][0]["message"]["content"]
+                    from openai import OpenAI
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant that summarizes class notes."},
+        {"role": "user", "content": f"Summarize these notes:\n\n{extracted_text}"}
+    ],
+    temperature=0.5,
+    max_tokens=500
+)
+
+summary = response.choices[0].message.content
+
                     st.subheader("📝 Summary")
                     st.write(summary)
                 except Exception as e:
