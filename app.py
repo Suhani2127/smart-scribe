@@ -3,7 +3,7 @@ import PyPDF2
 import requests
 
 # 🔐 Hugging Face API setup
-HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/allenai/longformer-base-4096"
 
 headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
 
