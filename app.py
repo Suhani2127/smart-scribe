@@ -112,6 +112,12 @@ st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
 st.subheader("Upload your notes and get instant AI-generated flashcards and text insights!")
 
+# Sidebar Navigation
+st.sidebar.title("Navigation")
+app_mode = st.sidebar.radio("Choose a section", 
+                           ["📄 Extracted Text", "✨ Generate Flashcards", 
+                            "📊 Text Analytics", "📊 Sentiment Analysis"])
+
 # File Upload Section
 uploaded_file = st.file_uploader("📤 Upload a PDF or TXT file", type=["pdf", "txt"])
 extracted_text = ""
@@ -131,55 +137,56 @@ if uploaded_file:
     else:
         st.success("✅ Text extracted successfully!")
 
-        # Display Extracted Text in a Collapsible Section
-        with st.expander("📄 Show Extracted Text"):
+        # Show Extracted Text
+        if app_mode == "📄 Extracted Text":
+            st.subheader("📄 Extracted Text")
             st.write(extracted_text)
 
         # Flashcards Section
-        with st.expander("✨ Generate Flashcards"):
-            if st.button("Generate Flashcards"):
-                with st.spinner("Generating flashcards..."):
-                    try:
-                        chunks = split_text(extracted_text)
-                        flashcards = []
-                        for chunk in chunks:
-                            flashcards_chunk = generate_flashcards_with_huggingface(chunk)
-                            flashcards.append(flashcards_chunk)
+        if app_mode == "✨ Generate Flashcards":
+            with st.spinner("Generating flashcards..."):
+                try:
+                    chunks = split_text(extracted_text)
+                    flashcards = []
+                    for chunk in chunks:
+                        flashcards_chunk = generate_flashcards_with_huggingface(chunk)
+                        flashcards.append(flashcards_chunk)
 
-                        st.subheader("🧠 Flashcards")
-                        # Display flashcards in a grid layout
-                        cols = st.columns(2)  # Create two columns for a compact layout
-                        for idx, flashcard in enumerate(flashcards):
-                            flashcard_list = flashcard.split("\n")
-                            with cols[idx % 2]:
-                                for card in flashcard_list:
-                                    if card.strip():
-                                        st.markdown(
-                                            f"""
-                                            <div style="background-color:#e8f5e9; padding: 10px; 
-                                            border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
-                                                <strong>🧠 Flashcard:</strong><br>{card.strip()}
-                                            </div>
-                                            """,
-                                            unsafe_allow_html=True,
-                                        )
-                    except Exception as e:
-                        st.error(f"Something went wrong: {e}")
+                    st.subheader("🧠 Flashcards")
+                    # Display flashcards in a grid layout
+                    cols = st.columns(2)  # Create two columns for a compact layout
+                    for idx, flashcard in enumerate(flashcards):
+                        flashcard_list = flashcard.split("\n")
+                        with cols[idx % 2]:
+                            for card in flashcard_list:
+                                if card.strip():
+                                    st.markdown(
+                                        f"""
+                                        <div style="background-color:#e8f5e9; padding: 10px; 
+                                        border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                                            <strong>🧠 Flashcard:</strong><br>{card.strip()}
+                                        </div>
+                                        """,
+                                        unsafe_allow_html=True,
+                                    )
+                except Exception as e:
+                    st.error(f"Something went wrong: {e}")
 
         # Text Analytics Section
-        with st.expander("📊 Text Analytics and Insights"):
+        if app_mode == "📊 Text Analytics":
+            st.subheader("🔑 Top Keywords")
             top_keywords = get_top_keywords(extracted_text, n=10)
-            st.markdown("**🔑 Top Keywords:**")
             for word, freq in top_keywords:
                 st.markdown(f"- **{word}** ({freq} times)")
 
-            st.markdown("**📌 Top Sentences:**")
+            st.subheader("📌 Top Sentences")
             top_sentences = get_top_sentences(extracted_text, n=5)
             for sent in top_sentences:
                 st.markdown(f"> {sent}")
 
         # Sentiment Analysis Section
-        with st.expander("📊 Sentiment Analysis"):
+        if app_mode == "📊 Sentiment Analysis":
+            st.subheader("📊 Sentiment Analysis")
             sentiment, polarity = analyze_sentiment(extracted_text)
 
             st.write(f"**Sentiment:** {sentiment}")
@@ -187,4 +194,5 @@ if uploaded_file:
 
             sentiment_color = "green" if sentiment == "Positive" else "red" if sentiment == "Negative" else "gray"
             st.markdown(f'<p style="color:{sentiment_color}; font-size: 18px;">{sentiment}</p>', unsafe_allow_html=True)
+
 
