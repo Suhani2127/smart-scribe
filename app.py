@@ -107,75 +107,10 @@ def analyze_sentiment(text):
     sentiment = "Positive" if polarity > 0 else "Negative" if polarity < 0 else "Neutral"
     return sentiment, polarity
 
-# Streamlit UI with Custom CSS
+# Streamlit UI
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
 st.subheader("Upload your notes and get instant AI-generated flashcards and text insights!")
-
-# Custom CSS for UI
-st.markdown("""
-    <style>
-        body {
-            background-color: #f7f7f7;
-            font-family: 'Helvetica Neue', sans-serif;
-        }
-        .stButton button {
-            background-color: #4CAF50;
-            color: white;
-            font-size: 16px;
-            padding: 10px 20px;
-            border-radius: 30px;
-            border: none;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .stButton button:hover {
-            background-color: #45a049;
-        }
-        .stTextInput input {
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .stTextInput input:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-        .stMarkdown {
-            font-size: 16px;
-            line-height: 1.6;
-        }
-        .stFileUploader {
-            border: 2px dashed #4CAF50;
-            padding: 20px;
-            text-align: center;
-            border-radius: 10px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .stFileUploader:hover {
-            background-color: #f0f0f0;
-        }
-        .stSidebar .stRadio button {
-            border: none;
-            background: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            display: block;
-            margin-bottom: 10px;
-            text-align: left;
-            width: 100%;
-        }
-        .stSidebar .stRadio button:hover {
-            background-color: #f4f4f4;
-        }
-        .stSidebar .stRadio div {
-            margin-bottom: 15px;
-        }
-    </style>
-""", unsafe_allow_html=True)
 
 # Sidebar Navigation
 st.sidebar.title("Navigation")
@@ -218,7 +153,7 @@ if uploaded_file:
                         flashcards.append(flashcards_chunk)
 
                     st.subheader("🧠 Flashcards")
-                    # Display flashcards in a grid layout
+                    # Display flashcards with black background and white text
                     cols = st.columns(2)  # Create two columns for a compact layout
                     for idx, flashcard in enumerate(flashcards):
                         flashcard_list = flashcard.split("\n")
@@ -227,7 +162,7 @@ if uploaded_file:
                                 if card.strip():
                                     st.markdown(
                                         f"""
-                                        <div style="background-color:#e8f5e9; padding: 10px; 
+                                        <div style="background-color:#000000; color: #ffffff; padding: 10px; 
                                         border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
                                             <strong>🧠 Flashcard:</strong><br>{card.strip()}
                                         </div>
