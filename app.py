@@ -45,18 +45,26 @@ def get_top_keywords(text, n=10):
     counter = Counter(tokens)
     return counter.most_common(n)
 
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
+
+def split_into_sentences(text):
+    # A basic sentence splitter using regex
+    return re.split(r'(?<=[.!?]) +', text.strip())
+
 def get_top_sentences(text, n=5):
-    sentences = sent_tokenize(text)
-    tokens = clean_and_tokenize(text)
-    word_freq = Counter(tokens)
+    sentences = split_into_sentences(text)
+    if len(sentences) == 0:
+        return []
 
-    sentence_scores = {}
-    for sent in sentences:
-        score = sum(word_freq[word.lower()] for word in word_tokenize(sent) if word.lower() in word_freq)
-        sentence_scores[sent] = score
+    # Use TF-IDF to rank sentence importance
+    vectorizer = TfidfVectorizer(stop_words="english")
+    tfidf_matrix = vectorizer.fit_transform(sentences)
+    sentence_scores = np.sum(tfidf_matrix.toarray(), axis=1)
+    top_indices = sentence_scores.argsort()[-n:][::-1]
+    return [sentences[i] for i in top_indices]
 
-    top = sorted(sentence_scores.items(), key=lambda x: x[1], reverse=True)
-    return [s[0] for s in top[:n]]
 
 # Split the text into smaller chunks to avoid token limit issues
 def split_text(text, max_chunk_size=1024):
