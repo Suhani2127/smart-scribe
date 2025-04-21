@@ -99,4 +99,4 @@ if uploaded_file:
                                 st.markdown(f"- {card.strip()}")
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
-                # Function to generate quiz from flashcardsre
+                # Function to generate quiz from flashcards
