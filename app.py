@@ -164,7 +164,7 @@ if uploaded_file:
                         if card.strip():
                             st.markdown(
                                 f"""
-                                <div style="background-color:{random.choice(card_colors)}; padding: 15px; 
+                                <div style="background-color:{random.choice(card_colors)}; color:black; padding: 15px; 
                                 border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
                                     <strong>🧠 Flashcard:</strong><br>{card.strip()}
                                 </div>
