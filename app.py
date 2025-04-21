@@ -3,6 +3,8 @@ import PyPDF2
 import requests
 import re
 import nltk
+nltk.download('punkt')
+
 from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
