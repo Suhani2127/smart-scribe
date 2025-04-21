@@ -1,7 +1,7 @@
 import streamlit as st
 import PyPDF2
 import requests
-import textwrap
+import re
 
 # 🔐 Hugging Face API setup
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
@@ -9,7 +9,7 @@ headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
 
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
-st.subheader("Upload your notes and get instant AI-generated summaries and quizzes")
+st.subheader("Upload your notes and get instant AI-generated flashcards (free & open-source powered)")
 
 uploaded_file = st.file_uploader("📤 Upload a PDF or TXT file", type=["pdf", "txt"])
 
@@ -21,44 +21,33 @@ def extract_text_from_pdf(file):
         text += page.extract_text()
     return text
 
-# 🧠 Summarization and Quiz Generation using Hugging Face API
-def summarize_with_huggingface(text, max_tokens):
-    input_tokens = len(text.split())  # Estimation based on word count
-    max_new_tokens = max_tokens - input_tokens
+# Split the text into smaller chunks to avoid token limit issues
+def split_text(text, max_chunk_size=1024):
+    # Split text into chunks of size max_chunk_size (taking into account token limits)
+    sentences = re.split(r'(?<=\.)\s', text)
+    chunks = []
+    current_chunk = ""
     
-    if max_new_tokens < 0:
-        raise ValueError("Text is too long to process in a single request.")
+    for sentence in sentences:
+        if len(current_chunk) + len(sentence) < max_chunk_size:
+            current_chunk += " " + sentence
+        else:
+            chunks.append(current_chunk.strip())
+            current_chunk = sentence
+            
+    if current_chunk.strip():
+        chunks.append(current_chunk.strip())
+        
+    return chunks
 
-    prompt = f"Summarize the following notes:\n\n{text}"
+# 🤖 Generate Flashcards using Hugging Face API
+def generate_flashcards_with_huggingface(text_chunk):
+    prompt = f"Generate flashcards based on the following notes:\n\n{text_chunk}"
     payload = {
         "inputs": prompt,
         "parameters": {
             "temperature": 0.5,
-            "max_new_tokens": max_new_tokens
-        }
-    }
-
-    response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload)
-
-    if response.status_code == 200:
-        return response.json()[0]["generated_text"]
-    else:
-        raise Exception(f"Error: {response.status_code} - {response.text}")
-
-# 📝 Quiz Generation using Hugging Face API
-def generate_quiz(text, max_tokens):
-    input_tokens = len(text.split())  # Estimation based on word count
-    max_new_tokens = max_tokens - input_tokens
-    
-    if max_new_tokens < 0:
-        raise ValueError("Text is too long to process in a single request.")
-
-    prompt = f"Create a quiz with multiple-choice questions based on the following notes:\n\n{text}"
-    payload = {
-        "inputs": prompt,
-        "parameters": {
-            "temperature": 0.5,
-            "max_new_tokens": max_new_tokens
+            "max_new_tokens": 150
         }
     }
 
@@ -89,45 +78,25 @@ if uploaded_file:
         with st.expander("📄 Show Extracted Text"):
             st.write(extracted_text)
 
-        # ✨ Define the maximum token limit for the entire text
-        max_token_limit = 1024  # total token limit for the model
-        tokenized_text = extracted_text.split()  # Split text into words (rough token estimation)
-        
-        if len(tokenized_text) > max_token_limit:
-            st.warning(f"⚠️ Text is too long. Trimming to {max_token_limit} tokens.")
-            tokenized_text = tokenized_text[:max_token_limit]  # Limit to max_token_limit
+        # ✨ Flashcards Button
+        if st.button("✨ Generate Flashcards"):
+            with st.spinner("Generating flashcards..."):
+                try:
+                    # Split text into manageable chunks
+                    chunks = split_text(extracted_text)
 
-        # Rebuild the text from the trimmed tokenized list
-        trimmed_text = ' '.join(tokenized_text)
+                    flashcards = []
+                    for chunk in chunks:
+                        flashcards_chunk = generate_flashcards_with_huggingface(chunk)
+                        flashcards.append(flashcards_chunk)
 
-        # ✨ Force smaller chunks by splitting into manageable text chunks
-        chunk_size = 300  # Even smaller chunk size to avoid token limit issues
-        text_chunks = textwrap.wrap(trimmed_text, chunk_size)
+                    st.subheader("🧠 Flashcards")
+                    # Display flashcards as bullet points
+                    for flashcard in flashcards:
+                        flashcard_list = flashcard.split("\n")
+                        for card in flashcard_list:
+                            if card.strip():
+                                st.markdown(f"- {card.strip()}")
+                except Exception as e:
+                    st.error(f"Something went wrong: {e}")
 
-        # ✨ Summarize Button
-        if st.button("✨ Summarize Notes"):
-            with st.spinner("Summarizing..."):
-                summaries = []
-                for chunk in text_chunks:
-                    try:
-                        summary = summarize_with_huggingface(chunk, max_token_limit)
-                        summaries.append(summary)
-                    except Exception as e:
-                        st.error(f"Error while summarizing: {e}")
-                
-                st.subheader("🧠 Summary")
-                st.write("\n".join(summaries))
-
-        # ✨ Quiz Button
-        if st.button("📝 Generate Quiz"):
-            with st.spinner("Generating quiz..."):
-                quizzes = []
-                for chunk in text_chunks:
-                    try:
-                        quiz = generate_quiz(chunk, max_token_limit)
-                        quizzes.append(quiz)
-                    except Exception as e:
-                        st.error(f"Error while generating quiz: {e}")
-
-                st.subheader("🎓 Quiz")
-                st.write("\n".join(quizzes))
