@@ -1,9 +1,11 @@
 import streamlit as st
 import PyPDF2
 import requests
-import re
 import nltk
+
+# Download punkt tokenizer if not already present
 nltk.download('punkt')
+
 
 from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
