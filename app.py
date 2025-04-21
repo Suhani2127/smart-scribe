@@ -103,7 +103,7 @@ if uploaded_file:
         trimmed_text = ' '.join(tokenized_text)
 
         # ✨ Split the trimmed text into smaller chunks for processing
-        chunk_size = 500  # limit to 500 tokens per chunk
+        chunk_size = 300  # Reduce chunk size to avoid hitting token limit
         text_chunks = textwrap.wrap(trimmed_text, chunk_size)
 
         # ✨ Summarize Button
@@ -133,4 +133,3 @@ if uploaded_file:
 
                 st.subheader("🎓 Quiz")
                 st.write("\n".join(quizzes))
-
