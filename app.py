@@ -90,7 +90,7 @@ if uploaded_file:
                 except Exception as e:
                     st.error(f"Something went wrong while summarizing: {e}")
 
-        # 🃏 Flashcard Generator
+               # 🃏 Flashcard Generator
         if st.button("🃏 Generate Flashcards"):
             with st.spinner("Creating flashcards..."):
                 try:
@@ -108,5 +108,3 @@ if uploaded_file:
                                     st.markdown(card)
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
-ong: {e}")
-
