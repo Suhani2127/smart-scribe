@@ -79,6 +79,26 @@ def split_text(text, max_chunk_size=1024):
 
     return chunks
 
+from textblob import TextBlob
+
+def analyze_sentiment(text):
+    # Create a TextBlob object
+    blob = TextBlob(text)
+    
+    # Get the sentiment polarity (-1 to 1 scale)
+    polarity = blob.sentiment.polarity
+    
+    # Determine sentiment
+    if polarity > 0:
+        sentiment = "Positive"
+    elif polarity < 0:
+        sentiment = "Negative"
+    else:
+        sentiment = "Neutral"
+    
+    return sentiment, polarity
+
+
 # 🤖 Generate Flashcards using Hugging Face API
 def generate_flashcards_with_huggingface(text_chunk):
     prompt = f"Generate flashcards based on the following notes:\n\n{text_chunk}"
@@ -185,6 +205,22 @@ if uploaded_file:
 
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
+# Display Sentiment Analysis
+st.subheader("📊 Sentiment Analysis")
+
+sentiment, polarity = analyze_sentiment(extracted_text)
+
+st.write(f"**Sentiment:** {sentiment}")
+st.write(f"**Polarity Score:** {polarity}")
+if sentiment == "Positive":
+    sentiment_color = "green"
+elif sentiment == "Negative":
+    sentiment_color = "red"
+else:
+    sentiment_color = "gray"
+
+# Display the sentiment with color coding
+st.markdown(f'<p style="color:{sentiment_color}; font-size: 18px;">{sentiment}</p>', unsafe_allow_html=True)
 
         # 🧠 Text Analytics and Insights
         st.subheader("📊 Text Analytics and Insights")
