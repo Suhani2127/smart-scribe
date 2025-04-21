@@ -9,7 +9,7 @@ headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
 
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
-st.subheader("Upload your notes and get instant AI-generated flashcards (free & open-source powered)")
+st.subheader("Upload your notes and get instant AI-generated summaries & quizzes (free & open-source powered)")
 
 uploaded_file = st.file_uploader("📤 Upload a PDF or TXT file", type=["pdf", "txt"])
 
@@ -40,9 +40,27 @@ def split_text(text, max_chunk_size=1024):
         
     return chunks
 
-# 🤖 Generate Flashcards using Hugging Face API
-def generate_flashcards_with_huggingface(text_chunk):
-    prompt = f"Generate flashcards based on the following notes:\n\n{text_chunk}"
+# 🤖 Summarization using Hugging Face API
+def summarize_with_huggingface(text_chunk):
+    prompt = f"Summarize the following notes:\n\n{text_chunk}"
+    payload = {
+        "inputs": prompt,
+        "parameters": {
+            "temperature": 0.5,
+            "max_new_tokens": 150
+        }
+    }
+
+    response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        return response.json()[0]["generated_text"]
+    else:
+        raise Exception(f"Error: {response.status_code} - {response.text}")
+
+# 🤖 Generate Quizzes using Hugging Face API
+def generate_quiz_with_huggingface(text_chunk):
+    prompt = f"Generate a multiple-choice quiz based on the following notes:\n\n{text_chunk}"
     payload = {
         "inputs": prompt,
         "parameters": {
@@ -78,25 +96,47 @@ if uploaded_file:
         with st.expander("📄 Show Extracted Text"):
             st.write(extracted_text)
 
-        # ✨ Flashcards Button
-        if st.button("✨ Generate Flashcards"):
-            with st.spinner("Generating flashcards..."):
+        # ✨ Summarize Button
+        if st.button("✨ Summarize Notes"):
+            with st.spinner("Summarizing..."):
                 try:
-                    # Split text into manageable chunks
+                    # Split text into manageable chunks for summary
                     chunks = split_text(extracted_text)
 
-                    flashcards = []
+                    summaries = []
                     for chunk in chunks:
-                        flashcards_chunk = generate_flashcards_with_huggingface(chunk)
-                        flashcards.append(flashcards_chunk)
+                        summary_chunk = summarize_with_huggingface(chunk)
+                        summaries.append(summary_chunk)
 
-                    st.subheader("🧠 Flashcards")
-                    # Display flashcards as bullet points
-                    for flashcard in flashcards:
-                        flashcard_list = flashcard.split("\n")
-                        for card in flashcard_list:
-                            if card.strip():
-                                st.markdown(f"- {card.strip()}")
+                    st.subheader("🧠 Summary")
+                    # Display summary as bullet points
+                    for summary in summaries:
+                        st.markdown(f"- {summary.strip()}")
+
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
 
+        # ✨ Quiz Button
+        if st.button("✨ Generate Quiz"):
+            with st.spinner("Generating quiz..."):
+                try:
+                    # Split text into manageable chunks for quiz
+                    chunks = split_text(extracted_text)
+
+                    quizzes = []
+                    for chunk in chunks:
+                        quiz_chunk = generate_quiz_with_huggingface(chunk)
+                        quizzes.append(quiz_chunk)
+
+                    st.subheader("🧠 Quiz")
+                    # Display quizzes as bullet points
+                    for quiz in quizzes:
+                        quiz_list = quiz.split("\n")
+                        for question in quiz_list:
+                            if question.strip():
+                                st.markdown(f"- {question.strip()}")
+
+                except Exception as e:
+                    st.error(f"Something went wrong: {e}")
+
+        
