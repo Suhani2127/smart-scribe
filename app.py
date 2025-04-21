@@ -4,6 +4,19 @@ import requests
 import re
 from collections import Counter
 import nltk
+
+
+# Ensure required NLTK data is available
+try:
+    nltk.data.find("tokenizers/punkt")
+except LookupError:
+    nltk.download("punkt")
+
+try:
+    nltk.data.find("corpora/stopwords")
+except LookupError:
+    nltk.download("stopwords")
+
 from nltk.tokenize import word_tokenize, sent_tokenize
 import string
 
