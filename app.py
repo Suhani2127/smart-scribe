@@ -146,10 +146,23 @@ if uploaded_file:
                         flashcards.append(flashcards_chunk)
 
                     st.subheader("🧠 Flashcards")
-                    for flashcard in flashcards:
-                        for line in flashcard.split("\n"):
-                            if line.strip():
-                                st.markdown(f"- {line.strip()}")
+                    import random
+
+card_colors = ["#e0f7fa", "#fce4ec", "#f3e5f5", "#fff3e0", "#e8f5e9"]
+
+for flashcard in flashcards:
+    flashcard_list = flashcard.split("\n")
+    for card in flashcard_list:
+        if card.strip():
+            st.markdown(
+                f"""
+                <div style="background-color:{random.choice(card_colors)}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                    <strong>🧠 Flashcard:</strong><br>{card.strip()}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
 
