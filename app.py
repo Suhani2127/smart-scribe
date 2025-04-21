@@ -23,9 +23,8 @@ def extract_text_from_pdf(file):
 
 # 🧠 Summarization and Quiz Generation using Hugging Face API
 def summarize_with_huggingface(text, max_tokens):
-    # Calculate max_new_tokens dynamically to avoid exceeding the 1024 token limit
-    input_tokens = len(text.split())  # Rough estimation of tokens
-    max_new_tokens = 1024 - input_tokens  # Adjust based on input size
+    input_tokens = len(text.split())  # Estimation based on word count
+    max_new_tokens = max_tokens - input_tokens
     
     if max_new_tokens < 0:
         raise ValueError("Text is too long to process in a single request.")
@@ -48,9 +47,8 @@ def summarize_with_huggingface(text, max_tokens):
 
 # 📝 Quiz Generation using Hugging Face API
 def generate_quiz(text, max_tokens):
-    # Calculate max_new_tokens dynamically to avoid exceeding the 1024 token limit
-    input_tokens = len(text.split())  # Rough estimation of tokens
-    max_new_tokens = 1024 - input_tokens  # Adjust based on input size
+    input_tokens = len(text.split())  # Estimation based on word count
+    max_new_tokens = max_tokens - input_tokens
     
     if max_new_tokens < 0:
         raise ValueError("Text is too long to process in a single request.")
@@ -102,8 +100,8 @@ if uploaded_file:
         # Rebuild the text from the trimmed tokenized list
         trimmed_text = ' '.join(tokenized_text)
 
-        # ✨ Split the trimmed text into smaller chunks for processing
-        chunk_size = 300  # Reduce chunk size to avoid hitting token limit
+        # ✨ Force smaller chunks by splitting into manageable text chunks
+        chunk_size = 300  # Even smaller chunk size to avoid token limit issues
         text_chunks = textwrap.wrap(trimmed_text, chunk_size)
 
         # ✨ Summarize Button
