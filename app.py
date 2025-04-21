@@ -1,33 +1,10 @@
 import streamlit as st
 import PyPDF2
+import requests
 
-#import requests
-
-# Hugging Face API setup
-HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
-headers = {
-    "Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"
-}
-
-def generate_text(prompt):
-    payload = {"inputs": prompt}
-    response = requests.post(HUGGINGFACE_API_URL, headers=headers, json=payload)
-    if response.status_code == 200:
-        return response.json()[0]["generated_text"]
-    else:
-        return "Error: Unable to fetch generated text."
-
-# Example usage
-st.title("SmartScribe AI")
-input_prompt = st.text_area("Enter a prompt to generate text:")
-if input_prompt:
-    generated_text = generate_text(input_prompt)
-    st.write("Generated Text:", generated_text)
-
-
+# 🔐 Hugging Face API setup
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1"
 headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
-
-
 
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
