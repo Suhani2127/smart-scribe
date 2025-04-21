@@ -240,4 +240,22 @@ if uploaded_file:
 
                 # Clear user input field
                 st.experimental_rerun()  # This will re-run the app to display the latest chat
+                import streamlit as st
+
+# Example usage of session_state to trigger updates
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
+
+def increment_counter():
+    st.session_state.counter += 1
+    # Instead of rerunning the app, just trigger UI updates by updating session state
+    st.experimental_rerun()
+
+# Display current counter value
+st.write(f"Counter value: {st.session_state.counter}")
+
+# Button to trigger counter increment
+if st.button("Increment"):
+    increment_counter()
+
 
