@@ -138,7 +138,7 @@ if uploaded_file:
         # ✨ Flashcards Generation
         if st.button("✨ Generate Flashcards"):
             with st.spinner("Generating flashcards..."):
-              try:
+try:
     # Split text into manageable chunks
     chunks = split_text(extracted_text)
 
