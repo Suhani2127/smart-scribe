@@ -5,3 +5,10 @@ nltk
 scikit-learn
 
 requests
+wordcloud
+matplotlib
+textblob
+textstat
+spacy
+
+
