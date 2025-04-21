@@ -3,8 +3,11 @@ import PyPDF2
 import requests
 
 # 🔐 Hugging Face API setup
-HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1"
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilbert-base-uncased"
+
 headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
+
+
 
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
 st.title("📝 SmartScribe AI")
