@@ -4,7 +4,8 @@ import requests
 import re
 from collections import Counter
 import nltk
-import random
+from textblob import TextBlob  # Added for sentiment analysis
+
 
 # Ensure required NLTK data is available
 try:
@@ -23,6 +24,10 @@ import string
 # 🔐 Hugging Face API setup
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/distilgpt2"
 headers = {"Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"}
+
+# Ensure nltk data is available
+nltk.download("punkt")
+nltk.download("stopwords")
 
 # 🧠 Text Analytics Helpers
 import re
@@ -79,26 +84,6 @@ def split_text(text, max_chunk_size=1024):
 
     return chunks
 
-from textblob import TextBlob
-
-def analyze_sentiment(text):
-    # Create a TextBlob object
-    blob = TextBlob(text)
-    
-    # Get the sentiment polarity (-1 to 1 scale)
-    polarity = blob.sentiment.polarity
-    
-    # Determine sentiment
-    if polarity > 0:
-        sentiment = "Positive"
-    elif polarity < 0:
-        sentiment = "Negative"
-    else:
-        sentiment = "Neutral"
-    
-    return sentiment, polarity
-
-
 # 🤖 Generate Flashcards using Hugging Face API
 def generate_flashcards_with_huggingface(text_chunk):
     prompt = f"Generate flashcards based on the following notes:\n\n{text_chunk}"
@@ -124,6 +109,24 @@ def extract_text_from_pdf(file):
     for page in pdf_reader.pages:
         text += page.extract_text()
     return text
+
+# Sentiment Analysis Function
+def analyze_sentiment(text):
+    # Create a TextBlob object
+    blob = TextBlob(text)
+    
+    # Get the sentiment polarity (-1 to 1 scale)
+    polarity = blob.sentiment.polarity
+    
+    # Determine sentiment
+    if polarity > 0:
+        sentiment = "Positive"
+    elif polarity < 0:
+        sentiment = "Negative"
+    else:
+        sentiment = "Neutral"
+    
+    return sentiment, polarity
 
 # 📱 Streamlit UI
 st.set_page_config(page_title="SmartScribe AI", page_icon="📝")
@@ -165,62 +168,26 @@ if uploaded_file:
 
                     st.subheader("🧠 Flashcards")
 
+                    import random
                     card_colors = ["#e0f7fa", "#fce4ec", "#f3e5f5", "#fff3e0", "#e8f5e9"]
 
-                    # Initialize the index for the flashcard navigation
-                    if "flashcard_idx" not in st.session_state:
-                        st.session_state.flashcard_idx = 0
-
-                    # Function to move to the next or previous flashcard
-                    def update_flashcard(direction):
-                        if direction == "next" and st.session_state.flashcard_idx < len(flashcards) - 1:
-                            st.session_state.flashcard_idx += 1
-                        elif direction == "prev" and st.session_state.flashcard_idx > 0:
-                            st.session_state.flashcard_idx -= 1
-
-                    # Display the selected flashcard
-                    flashcard_list = flashcards[st.session_state.flashcard_idx].split("\n")
-                    for card in flashcard_list:
-                        if card.strip():
-                            st.markdown(
-                                f"""
-                                <div style="background-color:{random.choice(card_colors)}; color:black; padding: 15px; 
-                                border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
-                                    <strong>🧠 Flashcard:</strong><br>{card.strip()}
-                                </div>
-                                """,
-                                unsafe_allow_html=True,
-                            )
-
-                    # Navigation buttons
-                    col1, col2, col3 = st.columns([1, 6, 1])
-                    with col1:
-                        if st.button("⬅️ Previous", key="prev"):
-                            update_flashcard("prev")
-                    with col2:
-                        st.write(f"**{st.session_state.flashcard_idx + 1}/{len(flashcards)}**")
-                    with col3:
-                        if st.button("➡️ Next", key="next"):
-                            update_flashcard("next")
-
+                    # Display flashcards in visual card style
+                    for flashcard in flashcards:
+                        flashcard_list = flashcard.split("\n")
+                        for card in flashcard_list:
+                            if card.strip():
+                                st.markdown(
+                                    f"""
+                                    <div style="background-color:{random.choice(card_colors)}; padding: 15px; 
+                                    border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                                        <strong>🧠 Flashcard:</strong><br>{card.strip()}
+                                    </div>
+                                    """,
+                                    unsafe_allow_html=True,
+                                )
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
-# Display Sentiment Analysis
-st.subheader("📊 Sentiment Analysis")
 
-sentiment, polarity = analyze_sentiment(extracted_text)
-
-st.write(f"**Sentiment:** {sentiment}")
-st.write(f"**Polarity Score:** {polarity}")
-if sentiment == "Positive":
-    sentiment_color = "green"
-elif sentiment == "Negative":
-    sentiment_color = "red"
-else:
-    sentiment_color = "gray"
-
-# Display the sentiment with color coding
-st.markdown(f'<p style="color:{sentiment_color}; font-size: 18px;">{sentiment}</p>', unsafe_allow_html=True)
 
         # 🧠 Text Analytics and Insights
         st.subheader("📊 Text Analytics and Insights")
@@ -233,4 +200,22 @@ st.markdown(f'<p style="color:{sentiment_color}; font-size: 18px;">{sentiment}</
         st.markdown("**📌 Top Sentences:**")
         top_sentences = get_top_sentences(extracted_text, n=5)
         for sent in top_sentences:
-            st.markdown(f"> {sent}")
+            st.markdown(f"> {sent}") 
+
+        # 📊 Sentiment Analysis
+        st.subheader("📊 Sentiment Analysis")
+
+        sentiment, polarity = analyze_sentiment(extracted_text)
+
+        st.write(f"**Sentiment:** {sentiment}")
+        st.write(f"**Polarity Score:** {polarity}")
+
+        # Visualize sentiment with color
+        if sentiment == "Positive":
+            sentiment_color = "green"
+        elif sentiment == "Negative":
+            sentiment_color = "red"
+        else:
+            sentiment_color = "gray"
+
+        st.markdown(f'<p style="color:{sentiment_color}; font-size: 18px;">{sentiment}</p>', unsafe_allow_html=True)
