@@ -4,6 +4,9 @@ import requests
 import re
 from collections import Counter
 import nltk
+import random
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
 
 
 # Ensure required NLTK data is available
@@ -29,8 +32,6 @@ nltk.download("punkt")
 nltk.download("stopwords")
 
 # 🧠 Text Analytics Helpers
-import re
-
 def clean_and_tokenize(text):
     stop_words = {
         "the", "and", "is", "in", "it", "of", "to", "for", "a", "an", "on", "with", "as", "by", "this",
@@ -45,13 +46,11 @@ def get_top_keywords(text, n=10):
     counter = Counter(tokens)
     return counter.most_common(n)
 
-import re
-from sklearn.feature_extraction.text import TfidfVectorizer
-import numpy as np
 
 def split_into_sentences(text):
     # A basic sentence splitter using regex
     return re.split(r'(?<=[.!?]) +', text.strip())
+
 
 def get_top_sentences(text, n=5):
     sentences = split_into_sentences(text)
@@ -138,37 +137,36 @@ if uploaded_file:
         # ✨ Flashcards Generation
         if st.button("✨ Generate Flashcards"):
             with st.spinner("Generating flashcards..."):
-try:
-    # Split text into manageable chunks
-    chunks = split_text(extracted_text)
+                try:
+                    # Split text into manageable chunks
+                    chunks = split_text(extracted_text)
 
-    flashcards = []
-    for chunk in chunks:
-        flashcards_chunk = generate_flashcards_with_huggingface(chunk)
-        flashcards.append(flashcards_chunk)
+                    flashcards = []
+                    for chunk in chunks:
+                        flashcards_chunk = generate_flashcards_with_huggingface(chunk)
+                        flashcards.append(flashcards_chunk)
 
-    st.subheader("🧠 Flashcards")
+                    st.subheader("🧠 Flashcards")
 
-    import random
-    card_colors = ["#e0f7fa", "#fce4ec", "#f3e5f5", "#fff3e0", "#e8f5e9"]
+                    # Set up random card colors for visual appeal
+                    card_colors = ["#e0f7fa", "#fce4ec", "#f3e5f5", "#fff3e0", "#e8f5e9"]
 
-    # Display flashcards in visual card style
-    for flashcard in flashcards:
-        flashcard_list = flashcard.split("\n")
-        for card in flashcard_list:
-            if card.strip():
-                st.markdown(
-                    f"""
-                    <div style="background-color:{random.choice(card_colors)}; padding: 15px; 
-                    border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
-                        <strong>🧠 Flashcard:</strong><br>{card.strip()}
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-except Exception as e:
-    st.error(f"Something went wrong: {e}")
-
+                    # Display flashcards in visual card style
+                    for flashcard in flashcards:
+                        flashcard_list = flashcard.split("\n")
+                        for card in flashcard_list:
+                            if card.strip():
+                                st.markdown(
+                                    f"""
+                                    <div style="background-color:{random.choice(card_colors)}; padding: 15px; 
+                                    border-radius: 10px; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                                        <strong>🧠 Flashcard:</strong><br>{card.strip()}
+                                    </div>
+                                    """,
+                                    unsafe_allow_html=True,
+                                )
+                except Exception as e:
+                    st.error(f"Something went wrong: {e}")
 
         # 🧠 Text Analytics and Insights
         st.subheader("📊 Text Analytics and Insights")
@@ -182,3 +180,4 @@ except Exception as e:
         top_sentences = get_top_sentences(extracted_text, n=5)
         for sent in top_sentences:
             st.markdown(f"> {sent}")
+
