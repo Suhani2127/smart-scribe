@@ -209,7 +209,7 @@ if uploaded_file:
 
         # Flashcards Section
        
-# Flashcards Section
+# Generate Flashcards Section
 if app_mode == "✨ Generate Flashcards":
     with st.spinner("Generating flashcards..."):
         try:
@@ -220,8 +220,7 @@ if app_mode == "✨ Generate Flashcards":
                 flashcards.append(flashcards_chunk)
 
             st.subheader("🧠 Flashcards")
-            # Display flashcards in a grid layout
-            cols = st.columns(2)  # Create two columns for a compact layout
+            cols = st.columns(2)
             for idx, flashcard in enumerate(flashcards):
                 flashcard_list = flashcard.split("\n")
                 with cols[idx % 2]:
@@ -237,28 +236,27 @@ if app_mode == "✨ Generate Flashcards":
                                 unsafe_allow_html=True,
                             )
         except Exception as e:
-            st.error(f"Something went wrong: {e}")
+            st.error(f"❌ Flashcard generation failed: {e}")
 
+# Text Analytics Section (moved out of Flashcard block)
+if app_mode == "📊 Text Analytics" and extracted_text:
+    st.subheader("🔑 Top Keywords")
+    top_keywords = get_top_keywords(extracted_text, n=10)
+    for word, freq in top_keywords:
+        st.markdown(f"- **{word}** ({freq} times)")
 
-        # Text Analytics Section
-        if app_mode == "📊 Text Analytics":
-            st.subheader("🔑 Top Keywords")
-            top_keywords = get_top_keywords(extracted_text, n=10)
-            for word, freq in top_keywords:
-                st.markdown(f"- **{word}** ({freq} times)")
+    st.subheader("📌 Top Sentences")
+    top_sentences = get_top_sentences(extracted_text, n=5)
+    for sent in top_sentences:
+        st.markdown(f"> {sent}")
 
-            st.subheader("📌 Top Sentences")
-            top_sentences = get_top_sentences(extracted_text, n=5)
-            for sent in top_sentences:
-                st.markdown(f"> {sent}")
+# Sentiment Analysis Section (also moved out)
+if app_mode == "📊 Sentiment Analysis" and extracted_text:
+    st.subheader("📊 Sentiment Analysis")
+    sentiment, polarity = analyze_sentiment(extracted_text)
 
-        # Sentiment Analysis Section
-        if app_mode == "📊 Sentiment Analysis":
-            st.subheader("📊 Sentiment Analysis")
-            sentiment, polarity = analyze_sentiment(extracted_text)
+    st.write(f"**Sentiment:** {sentiment}")
+    st.write(f"**Polarity Score:** {polarity:.2f}")
 
-            st.write(f"**Sentiment:** {sentiment}")
-            st.write(f"**Polarity Score:** {polarity:.2f}")
-
-            sentiment_color = "green" if sentiment == "Positive" else "red" if sentiment == "Negative" else "gray"
-            st.markdown(f'<p style="color:{sentiment_color}; font-size: 18px;">{sentiment}</p>', unsafe_allow_html=True)
+    sentiment_color = "green" if sentiment == "Positive" else "red" if sentiment == "Negative" else "gray"
+    st.markdown(f'<p style="color:{sentiment_color}; font-size: 18px;">{sentiment}</p>', unsafe_allow_html=True)
